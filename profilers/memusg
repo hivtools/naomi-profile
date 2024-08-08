@@ -22,6 +22,7 @@
 set -um
 
 output_file="memusg.out"
+remaining_args=()
 
 # Parse arguments to find --output-file and separate it from the command
 for arg in "$@"; do
@@ -35,8 +36,9 @@ for arg in "$@"; do
             shift
             ;;
         *)
-            # Stop processing when we reach the command (first non-option argument)
-            break
+            # Add the remaining arguments (the command and its args) to an array
+            remaining_args+=("$1")
+            shift
             ;;
     esac
 done
@@ -63,7 +65,7 @@ pgid=$(ps -o pgid= $$)
 # make sure we're in a separate process group
 if [[ "$pgid" == "$(ps -o pgid= $(ps -o ppid= $$))" ]]; then
     cmd=
-    set -- "$0" "$@"
+    set -- "$0" "${remaining_args[@]}"
     for a; do cmd+="'${a//"'"/"'\\''"}' "; done
     exec bash -i -c "$cmd"
 fi
@@ -90,4 +92,4 @@ echo "$peak" > "$output_file"
 monpid=$!
 
 # run the given command
-exec "$@"
+exec "${remaining_args[@]}"
