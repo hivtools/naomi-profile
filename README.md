@@ -28,17 +28,17 @@ There are many of these available
 
 This repo provides some scripts we can re-use for profiling parts of naomi. The rough approach this uses is. The scripts use the approved model fits from 2023/24, pull the relevant files from the server and then fit the model using the same files and model options they used. This should hopefully give a reliable result for most countries.
 
-1. fit_model - takes path to the output zip
+1. fit_model - takes path to the output zip. Note quoting to work around issues with docopt and spaces in strings
    ```sh
-   ./fit_model ---output-zip=~/Downloads/ESW\ 2024\ naomi_outputs.zip
+   ./fit_model '"~/Downloads/ESW 2024 naomi_outputs.zip"'
    ```
 2. calibrate_fit - takes path to the output zip
    ```sh
-   ./calibrate_fit --output-zip=~/Downloads/ESW\ 2024\ naomi_outputs.zip
+   ./calibrate_fit '"~/Downloads/ESW 2024 naomi_outputs.zip"'
    ```
 3. generate_output - takes download type and path to the output zip
    ```sh
-   ./generate_output --type=spectrum --output-zip=~/Downloads/ESW\ 2024\ naomi_outputs.zip
+   ./generate_output --type=spectrum '"~/Downloads/ESW 2024 naomi_outputs.zip"'
    ```
    download types are `spectrum`, `coarse`, `summary`, `comparison` and `agyw` 
 
@@ -51,7 +51,7 @@ Then you can add profiler to these
 
 To profile model fit with valgrind massif
 ```sh
-massif fit_model ESW ~/Downloads/
+massif --label ESW fit_model '"~/Downloads/ESW 2024 naomi_outputs.zip"'
 ```
 This will produce a file `out/massif.out.ESW.$TIME`
 
@@ -60,9 +60,9 @@ You can then view the memory usage graph and all details with `ms_print` or the 
 ./ms_print ./out/massif.out.ESW.$PID
 ```
 
-To profile calibration with memusg
+To profile calibration with memusg. Note be careful with quoting
 ```sh
-./memusg ./calibrate_fit ESW ~/Downloads/
+./memusg --label ESW ./calibrate_fit '"~/Downloads/ESW 2024 naomi_outputs.zip"'
 ```
 
 This will output a file `memusg.ESW.$TIME`, view the result by printing it.

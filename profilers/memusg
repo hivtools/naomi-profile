@@ -24,15 +24,17 @@ set -um
 output_file="memusg.out"
 remaining_args=()
 
+echo $#
+
 # Parse arguments to find --output-file and separate it from the command
-for arg in "$@"; do
-    case $arg in
+while [[ $# -gt 0 ]]; do
+    case $1 in
         --output-file)
             output_file="$2"
             shift 2
             ;;
         --output-file=*)
-            output_file="${arg#*=}"
+            output_file="${1#*=}"
             shift
             ;;
         *)
@@ -43,6 +45,8 @@ for arg in "$@"; do
     esac
 done
 
+echo "OUTPUT FILE AFTER"
+echo $output_file
 
 # Ensure the output file is specified
 if [[ -z "$output_file" ]]; then
@@ -51,13 +55,13 @@ if [[ -z "$output_file" ]]; then
 fi
 
 # Make sure there is at least one argument remaining (the command to run)
-if [[ $# -lt 1 ]]; then
+if [[ ${#remaining_args[@]} -lt 1 ]]; then
     echo "Error: Command to run is required." >&2
     exit 1
 fi
 
-# check input
-[[ $# -gt 0 ]] || { sed -n '2,/^#$/ s/^# //p' <"$0"; exit 1; }
+# Check input
+[[ ${#remaining_args[@]} -gt 0 ]] || { sed -n '2,/^#$/ s/^# //p' <"$0"; exit 1; }
 
 # TODO support more options: peak, footprint, sampling rate, etc.
 
@@ -65,8 +69,9 @@ pgid=$(ps -o pgid= $$)
 # make sure we're in a separate process group
 if [[ "$pgid" == "$(ps -o pgid= $(ps -o ppid= $$))" ]]; then
     cmd=
-    set -- "$0" "${remaining_args[@]}"
+    set -- "${remaining_args[@]}"
     for a; do cmd+="'${a//"'"/"'\\''"}' "; done
+    echo $cmd
     exec bash -i -c "$cmd"
 fi
 
