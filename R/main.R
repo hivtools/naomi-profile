@@ -21,20 +21,20 @@ main_fit_model <- function(args = commandArgs(TRUE)) {
   out <- unzip_and_fetch_debug(args$output_zip)
 
   files <- lapply(out$state$datasets, function(dataset) basename(dataset$path))
-#   files <- lapply(files, function(file) {
-#     input_path <- file.path(out$debug_path, out$state$model_fit$id, "files", file)
-#     if (!file.exists(input_path)) {
-#       stop(sprintf("File at path %s does not exist", input_path))
-#     }
-#     input_path
-#   })
+  files <- lapply(files, function(file) {
+    input_path <- file.path(out$debug_path, out$state$model_fit$id, "files", file)
+    if (!file.exists(input_path)) {
+      stop(sprintf("File at path %s does not exist", input_path))
+    }
+    input_path
+  })
 
   out_path <- tempfile()
   dir.create(out_path, TRUE, FALSE)
   message("Fitting model")
-#   withr::with_envvar(c("USE_MOCK_MODEL" = "false"), {
-#     model_run <- hintr:::run_model(files, out$state$model_fit$options, out_path)
-#   })
+  withr::with_envvar(c("USE_MOCK_MODEL" = "false"), {
+    model_run <- hintr:::run_model(files, out$state$model_fit$options, out_path)
+  })
   message("Model fit complete")
 }
 
@@ -50,7 +50,7 @@ unzip_and_fetch_debug <- function(output_zip) {
 
   state <- jsonlite::read_json(file.path(unzip_dir, "info", "project_state.json"))
   fit_id <- state$model_fit$id
-  #hintr:::download_debug(fit_id, dest = debug_dest)
+  hintr:::download_debug(fit_id, dest = debug_dest)
 
   list(unzip_path = unzip_dir, debug_path = debug_dest, state = state)
 }

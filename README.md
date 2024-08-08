@@ -51,7 +51,7 @@ Then you can add profiler to these
 
 To profile model fit with valgrind massif
 ```sh
-massif --label ESW fit_model '"~/Downloads/ESW 2024 naomi_outputs.zip"'
+./profilers/massif --label ESW fit_model '"~/Downloads/ESW 2024 naomi_outputs.zip"'
 ```
 This will produce a file `out/massif.out.ESW.$TIME`
 
@@ -62,7 +62,7 @@ You can then view the memory usage graph and all details with `ms_print` or the 
 
 To profile calibration with memusg. Note be careful with quoting
 ```sh
-./memusg --label ESW ./calibrate_fit '"~/Downloads/ESW 2024 naomi_outputs.zip"'
+./profilers/memusg --label ESW ./calibrate_fit '"~/Downloads/ESW 2024 naomi_outputs.zip"'
 ```
 
 This will output a file `memusg.ESW.$TIME`, view the result by printing it.

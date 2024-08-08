@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # memusg -- Measure memory usage of processes
-# Usage: memusg --output-file=<file> COMMAND [ARGS]...
+# Usage: memusg COMMAND [ARGS]...
 #
 # Author: Jaeho Shin <netj@sparcs.org>
 # Created: 2010-08-16
@@ -21,57 +21,31 @@
 ############################################################################
 set -um
 
-output_file="memusg.out"
-remaining_args=()
+# check input
+[[ $# -gt 0 ]] || { sed -n '2,/^#$/ s/^# //p' <"$0"; exit 1; }
 
-echo $#
-
-# Parse arguments to find --output-file and separate it from the command
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --output-file)
-            output_file="$2"
+# Detect and handle the --label option
+label=""
+while [[ "$1" == --* ]]; do
+    case "$1" in
+        --label)
+            label="$2"
             shift 2
             ;;
-        --output-file=*)
-            output_file="${1#*=}"
-            shift
-            ;;
         *)
-            # Add the remaining arguments (the command and its args) to an array
-            remaining_args+=("$1")
-            shift
+            echo "Unknown option: $1" >&2
+            sed -n '2,/^#$/ s/^# //p' <"$0"
+            exit 1
             ;;
     esac
 done
-
-echo "OUTPUT FILE AFTER"
-echo $output_file
-
-# Ensure the output file is specified
-if [[ -z "$output_file" ]]; then
-    echo "Error: --output-file option is required." >&2
-    exit 1
-fi
-
-# Make sure there is at least one argument remaining (the command to run)
-if [[ ${#remaining_args[@]} -lt 1 ]]; then
-    echo "Error: Command to run is required." >&2
-    exit 1
-fi
-
-# Check input
-[[ ${#remaining_args[@]} -gt 0 ]] || { sed -n '2,/^#$/ s/^# //p' <"$0"; exit 1; }
-
-# TODO support more options: peak, footprint, sampling rate, etc.
 
 pgid=$(ps -o pgid= $$)
 # make sure we're in a separate process group
 if [[ "$pgid" == "$(ps -o pgid= $(ps -o ppid= $$))" ]]; then
     cmd=
-    set -- "${remaining_args[@]}"
+    set -- "$0" "$@"
     for a; do cmd+="'${a//"'"/"'\\''"}' "; done
-    echo $cmd
     exec bash -i -c "$cmd"
 fi
 
@@ -92,9 +66,16 @@ do
     let peak="sample > peak ? sample : peak"
     sleep 0.1
 done
+
+# Get the current timestamp
+timestamp=$(date +%Y%m%d_%H%M%S)
+
+# Write the memory peak to a file
+mkdir -p out
+output_file="out/memusg.$label.$timestamp"
 echo "$peak" > "$output_file"
 ) &
 monpid=$!
 
 # run the given command
-exec "${remaining_args[@]}"
+exec "$@"
