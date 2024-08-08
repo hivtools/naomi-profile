@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+peak_memory=$(grep mem_heap_B "$1")
+peak_memory=${peak_memory##*=}
+
+formatted_peak=$(numfmt --to=iec-i --suffix=B --format="%9.2f" "$peak_memory")
+echo "Peak memory usage: $formatted_peak"
+
+ms_print "$@" | head -n 30

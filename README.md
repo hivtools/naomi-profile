@@ -53,11 +53,11 @@ To profile model fit with valgrind massif
 ```sh
 ./profilers/massif --label ESW fit_model '"~/Downloads/ESW 2024 naomi_outputs.zip"'
 ```
-This will produce a file `out/massif.out.ESW.$TIME`
+This will produce a file `out/massif.ESW.$TIME`
 
 You can then view the memory usage graph and all details with `ms_print` or the wrapper function here
 ```shell
-./ms_print ./out/massif.out.ESW.$PID
+./printer/ms_print ./out/massif.ESW.$PID
 ```
 
 To profile calibration with memusg. Note be careful with quoting
