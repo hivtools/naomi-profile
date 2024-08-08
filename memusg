@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Default label (in case --label is not provided)
+label=""
+
+# Parse arguments to find --label and separate it from the command
+for arg in "$@"; do
+    case $arg in
+        --label)
+            label="$2"
+            shift 2
+            ;;
+        --label=*)
+            label="${arg#*=}"
+            shift
+            ;;
+        *)
+            # Stop processing when we reach the command (first non-option argument)
+            break
+            ;;
+    esac
+done
+
+# Ensure the label is provided
+if [[ -z "$label" ]]; then
+    echo "Error: --label option is required." >&2
+    exit 1
+fi
+
+# Get the current timestamp in a format like YYYYMMDD_HHMMSS
+timestamp=$(date +"%Y%m%d_%H%M%S")
+
+# Construct the output file name using the label and timestamp
+output_file="memusg.${label}.${timestamp}"
+
+# Pass remaining arguments (the command and its arguments) to memusg
+./profilers/memusg "$@" --output-file="$output_file"

@@ -28,17 +28,17 @@ There are many of these available
 
 This repo provides some scripts we can re-use for profiling parts of naomi. The rough approach this uses is. The scripts use the approved model fits from 2023/24, pull the relevant files from the server and then fit the model using the same files and model options they used. This should hopefully give a reliable result for most countries.
 
-1. fit_model - takes country ISO3 code and root path to directory of 23/24 outputs
+1. fit_model - takes path to the output zip
    ```sh
-   fit_model ESW ~/Downloads/
+   ./fit_model ---output-zip=~/Downloads/ESW\ 2024\ naomi_outputs.zip
    ```
-2. calibrate_fit - takes country ISO3 code and root path to directory of 23/24 outputs
+2. calibrate_fit - takes path to the output zip
    ```sh
-   calibrate_fit ESW ~/Downloads/
+   ./calibrate_fit --output-zip=~/Downloads/ESW\ 2024\ naomi_outputs.zip
    ```
-3. generate_output - takes download type country ISO3 code and root path to directory of 23/24 outputs
+3. generate_output - takes download type and path to the output zip
    ```sh
-   generate_output spectrum ESW ~/Downloads/
+   ./generate_output --type=spectrum --output-zip=~/Downloads/ESW\ 2024\ naomi_outputs.zip
    ```
    download types are `spectrum`, `coarse`, `summary`, `comparison` and `agyw` 
 
@@ -62,7 +62,7 @@ You can then view the memory usage graph and all details with `ms_print` or the 
 
 To profile calibration with memusg
 ```sh
-memusg calibrate_fit ESW ~/Downloads/
+./memusg ./calibrate_fit ESW ~/Downloads/
 ```
 
 This will output a file `memusg.ESW.$TIME`, view the result by printing it.
