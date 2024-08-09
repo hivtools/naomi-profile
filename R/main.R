@@ -32,7 +32,7 @@ main_fit_model <- function(args = commandArgs(TRUE)) {
   out_path <- tempfile()
   dir.create(out_path, TRUE, FALSE)
   message("Fitting model")
-  withr::with_envvar(c("USE_MOCK_MODEL" = "false"), {
+  withr::with_envvar(c("USE_MOCK_MODEL" = "false", "OMP_NUM_THREADS" = "1"), {
     model_run <- hintr:::run_model(files, out$state$model_fit$options, out_path)
   })
   message("Model fit complete")
@@ -64,7 +64,7 @@ main_calibrate_fit <- function(args = commandArgs(TRUE)) {
   out_path <- tempfile()
   dir.create(out_path, TRUE, FALSE)
   message("Calibrating model")
-  model_run <- hintr:::run_calibrate(model_run, job_data$variables$calibration_options, out_path)
+  calibrate <- hintr:::run_calibrate(model_output, job_data$variables$calibration_options, out_path)
   message("Model calibration complete")
 }
 
