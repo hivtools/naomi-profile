@@ -86,7 +86,7 @@ generate_download -h | --help
 Options:
 -h --help     Show this screen
 <results-dir> Path to results directory to generate download for
-<type>        Type of download to create, 'spectrum', 'coarse_output', 'summary', 'comparison'"
+<type>        Type of download to create, 'spectrum', 'coarse_output', 'summary', 'comparison' or 'agyw'"
   dat <- docopt_parse(usage, args)
   list(type = dat$type,
        results_dir = dat$results_dir)
@@ -104,12 +104,18 @@ main_download <- function(args = commandArgs(TRUE)) {
   dir.create(res, FALSE, TRUE)
 
   message(paste("Generating download", args$type))
+  input <- NULL
+  if (type == "spectrum") {
+    input <- list(notes = "notes",
+                  state = '{"state": "example"}')
+  } else if (type == "agyw") {
+    input <- list(pjnz = "not used")
+  }
   download <- hintr:::download(
     output,
     type = args$type,
     path_results = res,
-    input = list(notes = "notes",
-                 state = '{"state": "example"}'))
+    input = input)
   message(paste("Completed generating download", args$type))
 }
 

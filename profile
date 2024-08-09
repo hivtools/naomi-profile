@@ -112,6 +112,7 @@ for country in "${!country_files[@]}"; do
         profile_download "coarse_output.$country" "$calibrate_dir" "coarse_output"
         profile_download "comparison.$country" "$calibrate_dir" "comparison"
         profile_download "summary.$country" "$calibrate_dir" "summary"
+        profile_download "agyw.$country" "$calibrate_dir" "agyw"
     else
         echo "Calibration directory for $country does not exist. Skipping downloads"
     fi

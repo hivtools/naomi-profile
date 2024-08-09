@@ -30,7 +30,7 @@ summarise_memusg <- function(profile_type, dir) {
     success_files <- grep(paste0("^", profile_type, ".*(?<!\\.FAILED)$"), files, value = TRUE, perl = TRUE)
     success_files <- file.path(dir, success_files)
     failed_files <- grep(paste0("^", profile_type, ".*\\.FAILED$"), files, value = TRUE, perl = TRUE)
-    types <- c("fit", "calibrate", "spectrum", "coarse_output", "summary", "comparison")
+    types <- c("fit", "calibrate", "spectrum", "coarse_output", "summary", "comparison", "agyw")
     for (type in types) {
         table <- process_files(profile_type, success_files, type)
         print_table(table, caption = type)
