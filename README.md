@@ -42,6 +42,11 @@ Output will be written to out directory. Any failed runs will still be profiled 
 
 You can supply your own profiler too, it needs to be a script which takes a named `--label` arg and then the name of script to profile and any args to that script. See section below for more details.
 
+You can then summarise all the results
+```sh
+./summarise --type memusg out
+```
+
 ## Individual scripts
 
 This repo provides some scripts we can re-use for profiling parts of naomi. The rough approach this uses is. The scripts use the approved model fits from 2023/24, pull the relevant files from the server and then fit the model using the same files and model options they used. This should hopefully give a reliable result for most countries.
@@ -88,3 +93,10 @@ To profile calibration with memusg. Note be careful with quoting
 ```
 
 This will output a file `memusg.ESW.$TIME`, view the result by printing it.
+
+
+## Future work
+
+* Add some plots into summary
+* Remove the weird extra layer of file creation from calibrate
+* Remove differences in naming between running `./profile` and running separately

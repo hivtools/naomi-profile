@@ -105,10 +105,10 @@ main_download <- function(args = commandArgs(TRUE)) {
 
   message(paste("Generating download", args$type))
   input <- NULL
-  if (type == "spectrum") {
+  if (args$type == "spectrum") {
     input <- list(notes = "notes",
                   state = '{"state": "example"}')
-  } else if (type == "agyw") {
+  } else if (args$type == "agyw") {
     input <- list(pjnz = "not used")
   }
   download <- hintr:::download(
