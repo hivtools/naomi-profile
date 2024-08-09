@@ -31,7 +31,7 @@ echo "Running valgrind for: $label"
 R -d "valgrind --tool=massif --massif-out-file=$OUTFILE" -f "$1" --args "${@:2}"
 
 if [ $? -ne 0 ]; then
-  echo "Error: valgrind failed for label $label"
+    echo "Error: valgrind failed for label $label"
 else
-  echo "valgrind completed successfully for label $label"
+    echo "valgrind completed successfully for label $label"
 fi

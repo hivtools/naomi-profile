@@ -26,6 +26,24 @@ There are many of these available
 
 # Scripts
 
+This repo provides a top level script which will profile model fit and calibration fit for a range of countries using your specified profiler. You might also have to update the file paths in the script, these are specific to my machine. Ideally would put this as an arg but will do that if someone else tries to run this at some point.
+
+To profile using massif
+```sh
+./profile --profiler ./profilers/massif
+```
+
+To profile using memusg
+```sh
+./profile --profiler ./profilers/memusg
+```
+
+Output will be written to out directory. Any failed runs will still be profiled but with a `.FAILED` prefix on their filename.
+
+You can supply your own profiler too, it needs to be a script which takes a named `--label` arg and then the name of script to profile and any args to that script. See section below for more details.
+
+## Individual scripts
+
 This repo provides some scripts we can re-use for profiling parts of naomi. The rough approach this uses is. The scripts use the approved model fits from 2023/24, pull the relevant files from the server and then fit the model using the same files and model options they used. This should hopefully give a reliable result for most countries.
 
 1. fit_model - takes path to the output zip. Note quoting to work around issues with docopt and spaces in strings
