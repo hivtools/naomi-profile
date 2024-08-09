@@ -54,11 +54,15 @@ This repo provides some scripts we can re-use for profiling parts of naomi. The 
    ```sh
    ./calibrate_fit '"~/Downloads/ESW 2024 naomi_outputs.zip"'
    ```
-3. generate_output - takes download type and path to the output zip
+   This can optionally save out calibration results to a directory, which can then be used for profiling download later.
    ```sh
-   ./generate_output --type=spectrum '"~/Downloads/ESW 2024 naomi_outputs.zip"'
+   ./calibrate_fit '"~/Downloads/ESW 2024 naomi_outputs.zip"' results
    ```
-   download types are `spectrum`, `coarse`, `summary`, `comparison` and `agyw` 
+3. generate_download - takes download type and path to the output zip
+   ```sh
+   ./generate_download results/SWZ_1ac27f5e578eb4dc087e7a90ff5a72b5_20240809_140633 spectrum
+   ```
+   download types are `spectrum`, `coarse_output`, `summary`, `comparison` and `agyw` 
 
 Then you can add profiler to these
 

@@ -50,13 +50,27 @@ fi
 profile_fit() {
   label=$1
   file=$2
+  echo "Profiling fit for $label"
   "$profiler" --label "$label" ./fit_model "$file"
+  echo "Completed fit for $label"
 }
 
 profile_calibrate() {
   label=$1
   file=$2
-  "$profiler" --label "$label" ./calibrate_fit "$file"
+  results_dir=$3
+  echo "Profiling calibrate for $label"
+  "$profiler" --label "$label" ./calibrate_fit "$file" "$results_dir"
+  echo "Completed calibrate for $label"
+}
+
+profile_download() {
+  label=$1
+  file=$2
+  type=$3
+  echo "Profiling download for $label"
+  "$profiler" --label "$label" ./generate_download "$file" "$type"
+  echo "Completed download for $label"
 }
 
 declare -A country_files=(
@@ -65,12 +79,16 @@ declare -A country_files=(
 )
 
 echo "Using profiler $profiler"
+out_dir="results"
 for country in "${!country_files[@]}"; do
     file="${country_files[$country]}"
-    echo "Profiling fit for $country"
     profile_fit "fit.$country" "$file"
-    echo "Completed fit $country"
-    echo "Profiling calibration for $country"
-    profile_calibrate "calibrate.$country" "$file"
-    echo "Completed calibrate $country"
+    out="$out_dir/$country"
+    profile_calibrate "calibrate.$country" "$file" "$out"
+    calibrate_dir=$(ls "$out")
+    calibrate_dir="$out/$calibrate_dir"
+    profile_download "spectrum.$country" "$calibrate_dir" "spectrum"
+    profile_download "coarse_output.$country" "$calibrate_dir" "coarse_output"
+    profile_download "comparison.$country" "$calibrate_dir" "comparison"
+    profile_download "summary.$country" "$calibrate_dir" "summary"
 done
