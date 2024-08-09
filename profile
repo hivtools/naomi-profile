@@ -79,7 +79,8 @@ declare -A country_files=(
 )
 
 echo "Using profiler $profiler"
-out_dir="results"
+out_dir="results/$(date +%Y%m%d_%H%M%S)"
+mkdir -p out_dir
 for country in "${!country_files[@]}"; do
     file="${country_files[$country]}"
     profile_fit "fit.$country" "$file"
@@ -87,8 +88,12 @@ for country in "${!country_files[@]}"; do
     profile_calibrate "calibrate.$country" "$file" "$out"
     calibrate_dir=$(ls "$out")
     calibrate_dir="$out/$calibrate_dir"
-    profile_download "spectrum.$country" "$calibrate_dir" "spectrum"
-    profile_download "coarse_output.$country" "$calibrate_dir" "coarse_output"
-    profile_download "comparison.$country" "$calibrate_dir" "comparison"
-    profile_download "summary.$country" "$calibrate_dir" "summary"
+    if [ -d "$calibrate_dir" ]; then
+        profile_download "spectrum.$country" "$calibrate_dir" "spectrum"
+        profile_download "coarse_output.$country" "$calibrate_dir" "coarse_output"
+        profile_download "comparison.$country" "$calibrate_dir" "comparison"
+        profile_download "summary.$country" "$calibrate_dir" "summary"
+    else
+        echo "Calibration directory for $country does not exist. Skipping downloads"
+    fi
 done

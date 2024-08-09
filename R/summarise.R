@@ -30,17 +30,17 @@ summarise_memusg <- function(profile_type, dir) {
     success_files <- grep(paste0("^", profile_type, ".*(?<!\\.FAILED)$"), files, value = TRUE, perl = TRUE)
     success_files <- file.path(dir, success_files)
     failed_files <- grep(paste0("^", profile_type, ".*\\.FAILED$"), files, value = TRUE, perl = TRUE)
-    fit_table <- process_files(profile_type, success_files, "fit")
-    calibrate_table <- process_files(profile_type, success_files, "calibrate")
+    types <- c("fit", "calibrate", "spectrum", "coarse_output", "summary", "comparison")
+    for (type in types) {
+        table <- process_files(profile_type, success_files, type)
+        print_table(table, caption = type)
+    }
 
     failed_table <- failed_files %>%
         tibble(file = .) %>%
         separate(file, c("prefix", "step", "iso3", "timestamp", "status"), sep = "\\.", remove = FALSE) %>%
         count(iso3, name = "failed_count")
-
-    print_table(fit_table, caption = "Model fit")
-    print_table(calibrate_table, caption = "Calibrate")
-    print_table(failed_table, caption = "Failed")
+    print(failed_table)
 }
 
 process_files <- function(profile_type, files, step) {
