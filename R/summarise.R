@@ -81,7 +81,8 @@ read_massif <- function(file_path) {
         return(0)
     }
 
-    peak_memory <- sub(".*=\\s*", "", mem_heap_line)
+    memory <- as.numeric(sub(".*=\\s*", "", mem_heap_line))
+    peak_memory <- max(memory)
     # massif reports in bytes but memusg in kb, convert this to kb
     as.numeric(peak_memory) / 1e3
 }
