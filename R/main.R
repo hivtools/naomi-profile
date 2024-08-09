@@ -78,6 +78,41 @@ main_calibrate_fit <- function(args = commandArgs(TRUE)) {
   message("Model calibration complete")
 }
 
+main_download_args <- function(args = commandArgs(TRUE)) {
+  usage <- "Usage:
+generate_download (<results-dir>) (<type>)
+generate_download -h | --help
+
+Options:
+-h --help     Show this screen
+<results-dir> Path to results directory to generate download for
+<type>        Type of download to create, 'spectrum', 'coarse_output', 'summary', 'comparison'"
+  dat <- docopt_parse(usage, args)
+  list(type = dat$type,
+       results_dir = dat$results_dir)
+}
+
+main_download <- function(args = commandArgs(TRUE)) {
+  args <- main_download_args(args)
+
+  output <- readRDS(file.path(args$results_dir, "output.rds"))
+  files <- list.files(args$results_dir, full.names = TRUE)
+  model_output_path <- files[grepl("*.qs$", files)]
+  output$model_output_path <- model_output_path
+
+  res <- tempfile()
+  dir.create(res, FALSE, TRUE)
+
+  message(paste("Generating download", args$type))
+  download <- hintr:::download(
+    output,
+    type = args$type,
+    path_results = res,
+    input = list(notes = "notes",
+                 state = '{"state": "example"}'))
+  message(paste("Completed generating download", args$type))
+}
+
 unzip_and_fetch_debug <- function(output_zip, stage = "fit") {
   if (!file.exists(output_zip)) {
     stop(sprintf("File at path %s does not exist", output_zip))
