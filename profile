@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+
 profile_fit() {
   label=$1
   file=$2
@@ -7,6 +8,8 @@ profile_fit() {
 }
 
 profile_calibrate() {
+  label=$1
+  file=$2
   ./profilers/memusg --label "$label" ./calibrate_fit "$file"
 }
 

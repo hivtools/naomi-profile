@@ -1,71 +1,68 @@
 #!/usr/bin/env bash
-# memusg -- Measure memory usage of processes
-# Usage: memusg COMMAND [ARGS]...
-#
-# Author: Jaeho Shin <netj@sparcs.org>
-# Created: 2010-08-16
-############################################################################
-# Copyright 2010 Jaeho Shin.                                               #
-#                                                                          #
-# Licensed under the Apache License, Version 2.0 (the "License");          #
-# you may not use this file except in compliance with the License.         #
-# You may obtain a copy of the License at                                  #
-#                                                                          #
-#     http://www.apache.org/licenses/LICENSE-2.0                           #
-#                                                                          #
-# Unless required by applicable law or agreed to in writing, software      #
-# distributed under the License is distributed on an "AS IS" BASIS,        #
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. #
-# See the License for the specific language governing permissions and      #
-# limitations under the License.                                           #
-############################################################################
+
 set -um
 
-# check input
-[[ $# -gt 0 ]] || { sed -n '2,/^#$/ s/^# //p' <"$0"; exit 1; }
+usage() {
+    echo "Usage: $0 --label <label> <command> [args...]" >&2
+    exit 1
+}
 
-# Detect and handle the --label option
+# Parse arguments
 label=""
-while [[ "$1" == --* ]]; do
+while [[ $# -gt 0 ]]; do
     case "$1" in
         --label)
+            if [[ -z "$2" ]]; then
+                usage
+            fi
             label="$2"
             shift 2
             ;;
         *)
-            echo "Unknown option: $1" >&2
-            sed -n '2,/^#$/ s/^# //p' <"$0"
-            exit 1
+            break
             ;;
     esac
 done
 
-pgid=$(ps -o pgid= $$)
-# make sure we're in a separate process group
-if [[ "$pgid" == "$(ps -o pgid= $(ps -o ppid= $$))" ]]; then
-    cmd=
-    set -- "$0" "$@"
-    for a; do cmd+="'${a//"'"/"'\\''"}' "; done
-    exec bash -i -c "$cmd"
+if [[ -z "$label" || $# -eq 0 ]]; then
+    usage
 fi
 
-# detect operating system and prepare measurement
-case $(uname) in
-    Darwin|*BSD) sizes() { /bin/ps -o rss= -g $1; } ;;
-    Linux) sizes() { /bin/ps -o rss= -$1; } ;;
-    *) echo "$(uname): unsupported operating system" >&2; exit 2 ;;
-esac
+# Function to get memory usage of a process and its children
+get_memory() {
+    local pid=$1
+    local mem=0
+    local child_mem=0
 
-# monitor the memory usage in the background.
-(
-peak=0
-while sizes=$(sizes $pgid)
-do
-    set -- $sizes
-    sample=$((${@/#/+}))
-    let peak="sample > peak ? sample : peak"
+    # Get memory of the process
+    mem=$(ps -o rss= -p $pid | awk '{print $1}')
+
+    # Get memory of child processes
+    for child in $(pgrep -P $pid); do
+        child_mem=$(get_memory $child)
+        mem=$((mem + child_mem))
+    done
+
+    echo $mem
+}
+
+# Run the command in background
+"$@" &
+pid=$!
+
+# Monitor memory usage
+peak_memory=0
+while kill -0 $pid 2>/dev/null; do
+    current_memory=$(get_memory $pid)
+    if [[ $current_memory -gt $peak_memory ]]; then
+        peak_memory=$current_memory
+    fi
     sleep 0.1
 done
+
+# Wait for the command to finish and get its exit code
+wait $pid
+exit_code=$?
 
 # Get the current timestamp
 timestamp=$(date +%Y%m%d_%H%M%S)
@@ -73,9 +70,10 @@ timestamp=$(date +%Y%m%d_%H%M%S)
 # Write the memory peak to a file
 mkdir -p out
 output_file="out/memusg.$label.$timestamp"
-echo "$peak" > "$output_file"
-) &
-monpid=$!
+if [[ $exit_code -ne 0 ]]; then
+    output_file="${output_file}.FAILED"
+fi
+echo "$peak_memory" > "$output_file"
 
-# run the given command
-exec "$@"
+echo "Profile saved to $output_file"
+exit $exit_code
