@@ -1,0 +1,4 @@
+#!/usr/bin/env Rscript
+
+source("R/summarise.R")
+main_summarise()
