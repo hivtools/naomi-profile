@@ -10,8 +10,8 @@ fit_model (<path>)
 fit_model -h | --help
 
 Options:
--h --help            Show this screen
---output-zip=<path>  Path to model output zip"
+-h --help  Show this screen
+<path>     Path to model output zip"
   dat <- docopt_parse(usage, args)
   list(output_zip = dat$path)
 }
@@ -22,7 +22,7 @@ main_fit_model <- function(args = commandArgs(TRUE)) {
 
   files <- lapply(out$state$datasets, function(dataset) basename(dataset$path))
   files <- lapply(files, function(file) {
-    input_path <- file.path(out$debug_path, out$state$model_fit$id, "files", file)
+    input_path <- file.path(out$debug_path, out$id, "files", file)
     if (!file.exists(input_path)) {
       stop(sprintf("File at path %s does not exist", input_path))
     }
@@ -38,7 +38,37 @@ main_fit_model <- function(args = commandArgs(TRUE)) {
   message("Model fit complete")
 }
 
-unzip_and_fetch_debug <- function(output_zip) {
+main_calibrate_args <- function(args = commandArgs(TRUE)) {
+  usage <- "Usage:
+calibrate_fit (<path>)
+calibrate_fit -h | --help
+
+Options:
+-h --help  Show this screen
+<path>     Path to model output zip"
+  dat <- docopt_parse(usage, args)
+  list(output_zip = dat$path)
+}
+
+main_calibrate_fit <- function(args = commandArgs(TRUE)) {
+  args <- main_calibrate_args(args)
+  out <- unzip_and_fetch_debug(args$output_zip, "calibrate")
+
+  job_data <- readRDS(file.path(out$debug_path, out$id, "data.rds"))
+  model_output <- job_data$variables$model_output
+
+  model_output_path <- list.files(file.path(out$debug_path, out$id, "files"), full.names = TRUE)
+
+  model_output$model_output_path <- model_output_path
+
+  out_path <- tempfile()
+  dir.create(out_path, TRUE, FALSE)
+  message("Calibrating model")
+  model_run <- hintr:::run_calibrate(model_run, job_data$variables$calibration_options, out_path)
+  message("Model calibration complete")
+}
+
+unzip_and_fetch_debug <- function(output_zip, stage = "fit") {
   if (!file.exists(output_zip)) {
     stop(sprintf("File at path %s does not exist", output_zip))
   }
@@ -49,8 +79,13 @@ unzip_and_fetch_debug <- function(output_zip) {
   dir.create(debug_dest, TRUE, FALSE)
 
   state <- jsonlite::read_json(file.path(unzip_dir, "info", "project_state.json"))
-  fit_id <- state$model_fit$id
-  hintr:::download_debug(fit_id, dest = debug_dest)
 
-  list(unzip_path = unzip_dir, debug_path = debug_dest, state = state)
+  if (stage == "fit") {
+    id <- state$model_fit$id
+  } else if (stage == "calibrate") {
+    id <- state$calibrate$id
+  }
+  hintr:::download_debug(id, dest = debug_dest)
+
+  list(unzip_path = unzip_dir, debug_path = debug_dest, state = state, id = id)
 }
