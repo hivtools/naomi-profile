@@ -40,14 +40,20 @@ main_fit_model <- function(args = commandArgs(TRUE)) {
 
 main_calibrate_args <- function(args = commandArgs(TRUE)) {
   usage <- "Usage:
-calibrate_fit (<path>)
+calibrate_fit (<path>) [<output-dir>]
 calibrate_fit -h | --help
 
 Options:
--h --help  Show this screen
-<path>     Path to model output zip"
+-h --help    Show this screen
+<path>       Path to model output zip
+<output-dir> Optional, path to save calibration output, for later use to check download generation"
   dat <- docopt_parse(usage, args)
-  list(output_zip = dat$path)
+  if (is.null(dat$output_dir)) {
+      dat$output_dir <- tempfile()
+      dir.create(dat$output_dir)
+  }
+  list(output_zip = dat$path,
+       output_dir = dat$output_dir)
 }
 
 main_calibrate_fit <- function(args = commandArgs(TRUE)) {
@@ -61,10 +67,14 @@ main_calibrate_fit <- function(args = commandArgs(TRUE)) {
 
   model_output$model_output_path <- model_output_path
 
-  out_path <- tempfile()
-  dir.create(out_path, TRUE, FALSE)
+  now <- format(Sys.time(), "%Y%m%d_%H%M%S")
+  iso3 <- out$state$model_fit$options$area_scope
+  dir_results <- file.path(args$output_dir, sprintf("%s_%s_%s", iso3, out$id, now))
+  dir.create(dir_results, TRUE, TRUE)
   message("Calibrating model")
-  calibrate <- hintr:::run_calibrate(model_output, job_data$variables$calibration_options, out_path)
+  calibrate <- hintr:::run_calibrate(model_output, job_data$variables$calibration_options, dir_results)
+  path_output <- file.path(dir_results, "output.rds")
+  saveRDS(calibrate, path_output)
   message("Model calibration complete")
 }
 
