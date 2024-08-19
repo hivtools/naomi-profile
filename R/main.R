@@ -136,7 +136,30 @@ unzip_and_fetch_debug <- function(output_zip, stage = "fit") {
   } else if (stage == "calibrate") {
     id <- state$calibrate$id
   }
-  hintr:::download_debug(id, dest = debug_dest)
+  download_debug(id, dest = debug_dest)
 
   list(unzip_path = unzip_dir, debug_path = debug_dest, state = state, id = id)
+}
+
+download_debug <- function(id, server = NULL, dest = tempfile()) {
+  if (is.null(server)) {
+    server <- "http://naomi.dide.ic.ac.uk:8888"
+  }
+  if (file.exists(file.path(dest, id))) {
+    stop(sprintf("Path '%s' already exists at destination '%s'", id, dest))
+  }
+  url <- sprintf("%s/model/debug/%s", server, id)
+  res <- httr2::request(url) |>
+    httr2::req_progress() |>
+    httr2::req_timeout(200) |> # We need bigger timeout for running with valgrind
+    httr2::req_perform()
+  httr2::resp_check_status(res)
+
+  zip <- tempfile(fileext = ".zip")
+  on.exit(unlink(zip))
+  writeBin(httr2::resp_body_raw(res), zip)
+  dir.create(dest, FALSE, TRUE)
+  zip::unzip(zip, exdir = dest)
+
+  file.path(dest, id)
 }
