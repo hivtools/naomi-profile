@@ -29,9 +29,11 @@ echo "Running valgrind for: $label"
 
 # Run the R script with valgrind/massif
 R -d "valgrind --tool=massif --massif-out-file=$OUTFILE" -f "$1" --args "${@:2}"
+exit_code=$?
 
-if [ $? -ne 0 ]; then
+if [ $exit_code -ne 0 ]; then
     echo "Error: valgrind failed for label $label"
+    mv "$OUTFILE" "$OUTFILE.FAILED"
 else
     echo "valgrind completed successfully for label $label"
 fi
