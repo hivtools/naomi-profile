@@ -119,6 +119,28 @@ main_download <- function(args = commandArgs(TRUE)) {
   message(paste("Completed generating download", args$type))
 }
 
+main_fetch_debugs_args <- function(args = commandArgs(TRUE)) {
+  usage <- "Usage:
+fetch_debugs (<path>)
+fetch_debugs -h | --help
+
+Options:
+-h --help  Show this screen
+<path>     Path to dir containing model output zips"
+  dat <- docopt_parse(usage, args)
+  list(path = dat$path)
+}
+
+main_fetch_debugs <- function(args = commandArgs(TRUE)) {
+  args <- main_fetch_debugs_args(args)
+
+  zips <- list.files(args$path, pattern = "*.zip", full.names = TRUE)
+  for (zip in zips) {
+    unzip_and_fetch_debug(zip, stage = "fit")
+    unzip_and_fetch_debug(zip, stage = "calibrate")
+  }
+}
+
 unzip_and_fetch_debug <- function(output_zip, stage = "fit") {
   if (!file.exists(output_zip)) {
     stop(sprintf("File at path %s does not exist", output_zip))
@@ -126,7 +148,7 @@ unzip_and_fetch_debug <- function(output_zip, stage = "fit") {
   unzip_dir <- tempfile()
   zip::unzip(output_zip, exdir = unzip_dir)
 
-  debug_dest <- tempfile()
+  debug_dest <- file.path("debug", stage)
   dir.create(debug_dest, TRUE, FALSE)
 
   state <- jsonlite::read_json(file.path(unzip_dir, "info", "project_state.json"))
@@ -136,7 +158,12 @@ unzip_and_fetch_debug <- function(output_zip, stage = "fit") {
   } else if (stage == "calibrate") {
     id <- state$calibrate$id
   }
-  download_debug(id, dest = debug_dest)
+  if (!file.exists(file.path(debug_dest, id))) {
+    message(sprintf("Fetching debug for %s", id))
+    download_debug(id, dest = debug_dest)
+  } else {
+    message(sprintf("Using cached debug for %s", id))
+  }
 
   list(unzip_path = unzip_dir, debug_path = debug_dest, state = state, id = id)
 }
@@ -151,7 +178,7 @@ download_debug <- function(id, server = NULL, dest = tempfile()) {
   url <- sprintf("%s/model/debug/%s", server, id)
   res <- httr2::request(url) |>
     httr2::req_progress() |>
-    httr2::req_timeout(200) |> # We need bigger timeout for running with valgrind
+    httr2::req_timeout(2000) |> # We need bigger timeout for running with valgrind
     httr2::req_perform()
   httr2::resp_check_status(res)
 

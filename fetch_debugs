@@ -1,0 +1,4 @@
+#!/usr/bin/env Rscript
+
+source("R/main.R")
+main_fetch_debugs()
