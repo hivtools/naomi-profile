@@ -66,7 +66,8 @@ process_files <- function(profile_type, files, step) {
         mutate(
             mem_human = vapply(mem_kb, format_size, character(1))
         ) %>%
-        ungroup()
+        ungroup() %>%
+        arrange(desc(mem_kb))
 }
 
 read_mem_usage <- function(file_path) {
