@@ -19,33 +19,37 @@ There are many of these available
 
 * You're on a linux machine
 * naomi is installed
-* hintr is instaled
+* hintr is installed
 * valgrind is installed
 * You can pull download debug files from Naomi
 * You have 23/24 model fits available on disk (could set up programmatic pulling of these later)
 
-# Scripts
+# Usage
 
 This repo provides a top level script which will profile model fit and calibration fit for a range of countries using your specified profiler. You might also have to update the file paths in the script, these are specific to my machine. Ideally would put this as an arg but will do that if someone else tries to run this at some point.
 
-To profile using massif
-```sh
-./profile --profiler ./profilers/massif
-```
+1. Fetch debug output `./fetch_debugs <path>` where the path is a path to a Naomi output zip. Note this must be an output zip created on the production application. `fetch_debugs` will pull all Naomi web app debugs for this output. This will save the outputs to a dir `debug` relative to where you ran the script from.
+2. Run the profile, edit the list of countries to run the profile for in the `profile` script. Here https://github.com/hivtools/naomi-profile/blob/2e6cfc9467587fe5205a9512846ef53bd43466d4/profile#L82 (I should put this into an argument down the line)
 
-To profile using memusg
-```sh
-./profile --profiler ./profilers/memusg
-```
+   To profile using massif
+   ```sh
+   ./profile --profiler ./profilers/massif
+   ```
 
-Output will be written to out directory. Any failed runs will still be profiled but with a `.FAILED` prefix on their filename.
+   To profile using memusg
+   ```sh
+   ./profile --profiler ./profilers/memusg
+   ```
 
-You can supply your own profiler too, it needs to be a script which takes a named `--label` arg and then the name of script to profile and any args to that script. See section below for more details.
+   Output will be written to `out` directory. Any failed runs will still be profiled but with a `.FAILED` prefix on their filename.
 
-You can then summarise all the results
-```sh
-./summarise --type memusg out
-```
+   You can supply your own profiler too, it needs to be a script which takes a named `--label` arg and then the name of script to profile and any args to that script. See section below for more details.
+
+3. Summarise all the results
+   ```sh
+   ./summarise --type memusg out
+   ```
+4. If you want to run more profiles perhaps comparing branches, I would recommend moving the `out` directory to something with a better name before you run a 2nd time because otherwise outputs from the 2 profiles will be in the same directory.
 
 ## Individual scripts
 
